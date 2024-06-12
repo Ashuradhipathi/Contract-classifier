@@ -4,4 +4,5 @@ streamlit
 streamlit_ace
 IPython
 llama-index-embeddings-gemini
+llama-index-llms-gemini
 pypdf
