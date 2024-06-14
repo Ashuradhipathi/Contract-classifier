@@ -6,20 +6,22 @@ from llama_index.embeddings.gemini import GeminiEmbedding
 import streamlit.components.v1 as components
 from pypdf import PdfReader
 
+global contract_text
+global contract_template_text 
 
+def extract_contract(contract_pdf):
+    pdf_text = ""
+    pdf_reader = PdfReader(contract_pdf)
+    number_of_pages = len(pdf_reader.pages)
+    for index in range(number_of_pages):
+        pdf_text = pdf_text + pdf_reader.pages[index].extract_text()
+    return pdf_text
 
-# Download PDFReader
-contract_template = PdfReader("/workspaces/Contract-classifier/Contract-Comparison/streamlit_app/juro-affiliate-marketing-agreement-template.pdf")
-contract_template_text = contract_template.pages[0].extract_text()
-
-contract =  PdfReader("/workspaces/Contract-classifier/Contract-Comparison/streamlit_app/affiliatetermsofuse11911.pdf")
-contract_text = contract.pages[0].extract_text()
 
 
 
 # Set Google API key
 GOOGLE_API_KEY = os.getenv("api")
-os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 
 
 def extract_keypoints(contract_text):
@@ -61,17 +63,30 @@ def find_deviations(contract_text, contract_template_text):
 
 
 
-llm = Gemini(model="models/gemini-1.5-flash-latest", temperature=0, embedding=GeminiEmbedding,)
+llm = Gemini(model="models/gemini-1.5-flash-latest", temperature=0, embedding=GeminiEmbedding,api_key=GOOGLE_API_KEY)
 
 def main():
     st.title("Contract comparator App")
+
+    
+    st.write("Upload a Contract")
+    contract_pdf = st.file_uploader("Upload Contract PDF", type=["pdf"])
+    if contract_pdf:
+        contract_text = extract_contract(contract_pdf)
+
+
+    st.write("Upload Contract Template")
+    contract_template_pdf = st.file_uploader("Upload Template PDF", type=["pdf"])
+    if contract_template_pdf:
+        contract_template_text = extract_contract(contract_template_pdf)
+
     
     if st.button("Key Points"):
-        key_points = extract_keypoints(contract_template_text)
+        key_points = extract_keypoints(contract_text)
         st.markdown(key_points.text)
 
     if st.button("Clauses"):
-        clauses = extract_clauses(contract_template_text)
+        clauses = extract_clauses(contract_text)
         st.markdown(clauses.text)
 
     if st.button("Deviations"):
