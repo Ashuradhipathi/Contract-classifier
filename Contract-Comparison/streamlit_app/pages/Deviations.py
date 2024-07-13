@@ -1,30 +1,37 @@
 import streamlit as st
 from utils import find_deviations
-from utils import llm
-
+from rag import query_output
 
 
 def main():
-    st.title("Contract comparator App")
-
-    prompt = st.chat_input("If you have any doubts about contract and template formats, let us know!")
-    if prompt:
-        st.write(f"User has sent the following prompt: {prompt}")
-        response = llm.complete(prompt)
-        st.write(response.text)
-
+    st.title("Deviations App")
 
     if st.session_state['contract_text'] != '' and st.session_state['contract_template_text'] != '':
-        with st.spinner('Wait for it...'):
-            clauses = find_deviations(st.session_state['contract_text'],st.session_state['contract_template_text'])
-            st.toast('Clauses extracted!')
-            st.success("Done!")
-        st.markdown(clauses)
+        if 'deviations' not in st.session_state:
+            with st.spinner('Extracting Deviations...'):
+                st.session_state['deviations'] = find_deviations(st.session_state['contract_text'],st.session_state['contract_template_text'])
+                st.success("Done!")
+                st.toast('Deviations extracted!')
+
+
+        st.markdown(st.session_state['deviations'].text)
     else:
-        st.markdown("# Go back and upload the contract!!")
+        st.markdown("# Go back and upload the contract and Template!!")
 
-
+    if st.session_state['contract_text'] != '':
+        prompt = st.chat_input("If you have any doubts, let us know!")
+        if prompt:
+            with st.chat_message("user"):
+                st.write(prompt)
+            with st.spinner("Answering Your Query"):
+                response = query_output(prompt)
+                with st.chat_message("bot"):
+                    st.write(response.text)
+    
 
 
 if __name__ == "__main__":
     main()
+
+
+

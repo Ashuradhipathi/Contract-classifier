@@ -1,41 +1,52 @@
 import os
 import streamlit as st
-from utils import extract_contract, llm, extract_keypoints
+from utils import extract_contract
+from rag import query_output, update_vector_store
 
 
-st.session_state['contract_text'] = ''
-st.session_state['contract_template_text'] = ''
 
 
 
 
 def main():
-    st.title("Contract comparator App")
+    st.title("Upload New Contracts and Templates")
 
-    prompt = st.chat_input("If you have any doubts about contract and template formats, let us know!")
-    if prompt:
-        st.write(f"User has sent the following prompt: {prompt}")
-        response = llm.complete(prompt)
-        st.write(response.text)
-
-    
     st.write("Upload a Contract")
-    st.session_state['contract_pdf'] = st.file_uploader("Upload Contract PDF", type=["pdf"])
-    if st.session_state['contract_pdf']:
+    contract_pdf = st.file_uploader("Upload Contract PDF", type=["pdf"])
+    if contract_pdf:
         with st.spinner('Extracting Contract...'):
-            st.session_state['contract_text'] =  extract_contract(st.session_state['contract_pdf'])
+            st.session_state['contract_text'] =  extract_contract(contract_pdf)
+            update_vector_store(st.session_state['contract_text'])
+            if 'clauses' in st.session_state and 'keypoints' in st.session_state :
+                st.session_state.popitem('clauses')
+                st.session_state.popitem('keypoints')
         st.success("Done!")
         st.toast('Contract extracted!')
 
 
 
-    st.write("Upload Contract Template")
-    st.session_state['template_pdf'] = st.file_uploader("Upload Template PDF", type=["pdf"])
-    if st.session_state['template_pdf']:
-        with st.spinner('Extracting Contract Template...'):
-            st.session_state['contract_template_text'] = extract_contract(st.session_state['template_pdf'])
+
+    st.write("Upload The Template")
+    template_pdf = st.file_uploader("Upload Template PDF", type=["pdf"])
+    if template_pdf:
+        with st.spinner('Extracting Template...'):
+            st.session_state['contract_template_text'] =  extract_contract(template_pdf)
+            update_vector_store(st.session_state['contract_template_text'])
+
+            if 'deviations' in st.session_state:
+                st.session_state.popitem('deviations')
         st.success("Done!")
         st.toast('Template extracted!')
+
+    if 'contract_text' in st.session_state and st.session_state['contract_text'] != '':
+        prompt = st.chat_input("If you have any doubts about clauses, let us know!")
+        if prompt:
+            with st.chat_message("user"):
+                st.write(prompt)
+            with st.spinner("Answering Your Query"):
+                response = query_output(prompt)
+                with st.chat_message("bot"):
+                    st.write(response.text)
 
 
 

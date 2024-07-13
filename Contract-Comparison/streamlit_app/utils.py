@@ -6,10 +6,17 @@ from llama_index.embeddings.gemini import GeminiEmbedding
 import streamlit.components.v1 as components
 from pypdf import PdfReader
 
+from llama_index.core import VectorStoreIndex, Document
+from llama_index.core.node_parser.text import TokenTextSplitter
 
 
 
+# Set Google API key
+GOOGLE_API_KEY = os.getenv("api")
 
+llm = Gemini(model="models/gemini-1.5-flash-latest", temperature=0, embedding=GeminiEmbedding,api_key=GOOGLE_API_KEY)
+
+    
 def extract_contract(contract_pdf):
     pdf_text = ""
     pdf_reader = PdfReader(contract_pdf)
@@ -21,19 +28,22 @@ def extract_contract(contract_pdf):
 
 
 
-# Set Google API key
-GOOGLE_API_KEY = os.getenv("api")
 
-llm = Gemini(model="models/gemini-1.5-flash-latest", temperature=0, embedding=GeminiEmbedding,api_key=GOOGLE_API_KEY)
 
 
 def extract_keypoints(contract_text):
-    key_points = llm.complete(f"You are a contract evaluator, You will be provided a contract, {contract_text}. return the key points that should be known to both the parties")
-    return key_points
+    try:
+        key_points = llm.complete(f"You are a contract evaluator, You will be provided a contract, {contract_text}. return the key points that should be known to both the parties")
+        return key_points
+    except:
+        return extract_keypoints(contract_text)
 
 def extract_clauses(contract_text):
-    clauses = llm.complete(f"You are a contract evaluator, You will be provided a contract, {contract_text}.Mention the key clauses and sub clauses of the contract and categorise the contents of contract under the clauses")
-    return clauses
+    try:
+        clauses = llm.complete(f"You are a contract evaluator, You will be provided a contract, {contract_text}.Mention the key clauses and sub clauses of the contract and categorise the contents of contract under the clauses")
+        return clauses
+    except:
+        return extract_clauses(contract_text)
 
 def find_deviations(contract_text, contract_template_text):    
     prompt = f"""
@@ -59,10 +69,27 @@ def find_deviations(contract_text, contract_template_text):
 
     Focus on structural differences, missing information, or inconsistencies.
     """
+    try:
+        response = llm.complete(prompt)
+        return response
+    except:
+        find_deviations(contract_text, contract_template_text)                                                                      
+    
 
-    response = llm.complete(prompt)
-                                                                             
-    return response.text
+if 'contract_text' not in st.session_state:
+    st.session_state['contract_text'] = ''
+
+if 'contract_template_text' not in st.session_state:
+    st.session_state['contract_template_text'] = ''
+
+
+
+
+
+
+
+
+
 
 
 
