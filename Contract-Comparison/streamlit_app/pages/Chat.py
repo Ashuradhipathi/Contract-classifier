@@ -6,7 +6,7 @@ from rag import query_output
 def main():
     st.title("Insights App")
 
-    if 'contract_text' in st.session_state:
+    if 'contract_text' in st.session_state and st.session_state['contract_text'] != '':
         if 'keypoints' not in st.session_state:
             with st.spinner('Extracting Contract...'):
                 st.session_state['keypoints'] = extract_keypoints(st.session_state['contract_text'])

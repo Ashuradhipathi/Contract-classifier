@@ -6,7 +6,7 @@ from rag import query_output
 def main():
     st.title("Clauses App")
 
-    if 'contract_text' in st.session_state:
+    if 'contract_text' in st.session_state and st.session_state['contract_text'] != '':
         if 'clauses' not in st.session_state:
             with st.spinner('Extracting Clauses...'):
                 st.session_state['clauses'] = extract_clauses(st.session_state['contract_text'])
