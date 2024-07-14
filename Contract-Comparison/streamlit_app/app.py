@@ -17,8 +17,9 @@ def main():
         with st.spinner('Extracting Contract...'):
             st.session_state['contract_text'] =  extract_contract(contract_pdf)
             update_vector_store(st.session_state['contract_text'])
-            if 'clauses' in st.session_state and 'keypoints' in st.session_state :
+            if 'clauses' in st.session_state:
                 st.session_state.popitem('clauses')
+            if 'keypoints' in st.session_state :
                 st.session_state.popitem('keypoints')
         st.success("Done!")
         st.toast('Contract extracted!')
