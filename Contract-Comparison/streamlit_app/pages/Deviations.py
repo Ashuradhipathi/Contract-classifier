@@ -6,7 +6,7 @@ from rag import query_output
 def main():
     st.title("Deviations App")
 
-    if st.session_state['contract_text'] != '' and st.session_state['contract_template_text'] != '':
+    if ('contract_text' in st.session_state and st.session_state['contract_text'] != '') and ('contract_template_text' in st.session_state and st.session_state['contract_template_text'] != ''):
         if 'deviations' not in st.session_state:
             with st.spinner('Extracting Deviations...'):
                 st.session_state['deviations'] = find_deviations(st.session_state['contract_text'],st.session_state['contract_template_text'])

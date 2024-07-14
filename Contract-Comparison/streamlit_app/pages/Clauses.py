@@ -18,7 +18,7 @@ def main():
     else:
         st.markdown("# Go back and upload the contract!!")
 
-    if st.session_state['contract_text'] != '':
+    if 'contract_text' in st.session_state and st.session_state['contract_text'] != '':
         prompt = st.chat_input("If you have any doubts, let us know!")
         if prompt:
             with st.chat_message("user"):
