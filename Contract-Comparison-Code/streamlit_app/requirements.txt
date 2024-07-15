@@ -7,4 +7,3 @@ llama-index-embeddings-gemini
 llama-index-llms-gemini
 pypdf
 transformers
-pymongo
